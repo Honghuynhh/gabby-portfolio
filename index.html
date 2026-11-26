@@ -22,7 +22,7 @@ a{color:inherit;text-decoration:none}
 h1,h2,h3,p{margin:0}
 h2{font-size:clamp(36px,5vw,60px);font-weight:700;letter-spacing:-.045em;line-height:1;text-wrap:balance}
 h3{font-size:19px;font-weight:600;letter-spacing:-.02em}
-.wrap{max-width:1200px;margin:0 auto;padding-inline:max(20px,env(safe-area-inset-left,0px)) max(20px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1280px;margin:0 auto;padding-inline:max(clamp(20px,5vw,80px),env(safe-area-inset-left,0px)) max(clamp(20px,5vw,80px),env(safe-area-inset-right,0px))}
 .band{padding-block:clamp(64px,9vw,112px)}
 .grey{background:var(--surface)}
 .ic{width:1em;height:1em;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
@@ -425,8 +425,8 @@ const stage=document.getElementById('stage3d'),ring=document.getElementById('rin
 ring.innerHTML=ITEMS.map((v,i)=>`<a class="fr" href="${v.u}" target="_blank" rel="noopener" data-i="${i}" draggable="false" aria-label="${v.t}"><span class="sp"></span><img src="${v.img}" alt="" draggable="false" loading="lazy"><span class="pb"><svg class="ic"><use href="#play"/></svg></span><span class="sp b"></span></a>`).join('');
 const frs=[...ring.children];
 let W=200,H=270,R=600,ang=0,vel=0,target=null,hover=false,hx=0,drag=null,filter='all',running=false,front=-1;
-function size(){const sw=stage.clientWidth;W=Math.max(130,Math.min(220,sw*.2));H=W*1.36;R=Math.round((W+22)/2/Math.tan(Math.PI/N));
-  if(sw<600){W=150;H=204;R=Math.round((W+14)/2/Math.tan(Math.PI/N))}
+function size(){const sw=stage.clientWidth;W=Math.max(120,Math.min(170,sw*.14));H=W*1.36;R=Math.round((W+22)/2/Math.tan(Math.PI/N));
+  if(sw<600){W=128;H=174;R=Math.round((W+14)/2/Math.tan(Math.PI/N))}
   stage.style.setProperty('--w',W+'px');stage.style.setProperty('--h',H+'px');
   ring.style.transform=`translateZ(${-R}px)`;frs.forEach((f,i)=>f.style.transform=`rotateY(${i*STEP}deg) translateZ(${R}px)`);place()}
 const norm=a=>((a%360)+540)%360-180;
@@ -440,18 +440,18 @@ function goTo(i){const t=angOf(i);target=ang+norm(t-ang)}
 let last=performance.now();
 function tick(now){const dt=Math.min(.05,(now-last)/1000);last=now;
   if(drag){}
-  else if(target!==null){const d=target-ang;vel=d*8;ang+=vel*dt;if(Math.abs(d)<.05){ang=target;target=null;vel=0}}
-  else{let want=RM?0:(hover?(Math.abs(hx)<.12?0:-hx*90):-7);vel+=(want-vel)*Math.min(1,dt*3);ang+=vel*dt}
+  else if(target!==null){const d=target-ang;vel=d*4;ang+=vel*dt;if(Math.abs(d)<.05){ang=target;target=null;vel=0}}
+  else{let want=RM?0:(hover?(Math.abs(hx)<.2?0:-Math.sign(hx)*(Math.abs(hx)-.2)/.8*32):-3);vel+=(want-vel)*Math.min(1,dt*1.5);ang+=vel*dt}
   place();if(running)requestAnimationFrame(tick)}
 function startReel(){if(running)return;running=true;size();last=performance.now();requestAnimationFrame(tick)}
 addEventListener('resize',size);
 stage.addEventListener('pointerenter',e=>{if(e.pointerType==='mouse')hover=true});
 stage.addEventListener('pointerleave',()=>{hover=false;hx=0});
 stage.addEventListener('pointermove',e=>{const r=stage.getBoundingClientRect();hx=(e.clientX-r.left)/r.width*2-1;
-  if(drag){const dx=e.clientX-drag.x;drag.moved=Math.max(drag.moved,Math.abs(e.clientX-drag.sx));const now=performance.now();drag.v=(dx*.35)/Math.max(.001,(now-drag.t)/1000);drag.t=now;drag.x=e.clientX;ang+=dx*.35}});
+  if(drag){const dx=e.clientX-drag.x;drag.moved=Math.max(drag.moved,Math.abs(e.clientX-drag.sx));const now=performance.now();drag.v=(dx*.22)/Math.max(.001,(now-drag.t)/1000);drag.t=now;drag.x=e.clientX;ang+=dx*.22}});
 stage.addEventListener('pointerdown',e=>{if(e.button!==0)return;drag={x:e.clientX,sx:e.clientX,t:performance.now(),v:0,moved:0};target=null;stage.setPointerCapture(e.pointerId);stage.classList.add('drag')});
 const endDrag=e=>{if(!drag)return;stage.classList.remove('drag');const d=drag;drag=null;if(d.moved<6){return}
-  const proj=ang+d.v*.4;target=Math.round(proj/STEP)*STEP;stage.__moved=true;setTimeout(()=>stage.__moved=false,50)};
+  const proj=ang+d.v*.25;target=Math.round(proj/STEP)*STEP;stage.__moved=true;setTimeout(()=>stage.__moved=false,50)};
 stage.addEventListener('pointerup',endDrag);stage.addEventListener('pointercancel',endDrag);
 ring.addEventListener('click',e=>{const a=e.target.closest('.fr');if(!a)return;if(stage.__moved){e.preventDefault();return}
   const i=+a.dataset.i;if(i!==front){e.preventDefault();goTo(i)}});
